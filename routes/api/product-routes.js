@@ -11,8 +11,9 @@ router.get('/', async (req, res) => {
     const productData = await Product.findAll({
       include: [{ model: Category }, { model: Tag}],
     });
-    res.status(200).json(readerData);
+    res.status(200).json(productData);
   } catch(err) {
+    console.log(err);
     res.status(500).json(err);
   }
 });
@@ -28,6 +29,7 @@ router.get('/:id', async (req, res) => {
   
     if(!productData) {
       res.status(404).json({ message: 'That product does not exist!' });
+      return;
     }
   
     res.status(200).json(productData);
@@ -51,10 +53,10 @@ router.post('/', async (req, res) => {
     .then((product) => {
       // if there's product tags, we need to create pairings to bulk create in the ProductTag model
       if (req.body.tagIds.length) {
-        const productTagIdArr = req.body.tagIds.map((tag_id) => {
+        const productTagIdArr = req.body.tagIds.map((tagId) => {
           return {
-            product_id: product.id,
-            tag_id,
+            productId: product.id,
+            tagId,
           };
         });
         return ProductTag.bulkCreate(productTagIdArr);
@@ -79,23 +81,23 @@ router.put('/:id', async (req, res) => {
   })
     .then((product) => {
       // find all associated tags from ProductTag
-      return ProductTag.findAll({ where: { product_id: req.params.id } });
+      return ProductTag.findAll({ where: { productId: req.params.id } });
     })
     .then((productTags) => {
-      // get list of current tag_ids
-      const productTagIds = productTags.map(({ tag_id }) => tag_id);
-      // create filtered list of new tag_ids
+      // get list of current tagIds
+      const productTagIds = productTags.map(({ tagId }) => tagId);
+      // create filtered list of new tagIds
       const newProductTags = req.body.tagIds
-        .filter((tag_id) => !productTagIds.includes(tag_id))
-        .map((tag_id) => {
+        .filter((tagId) => !productTagIds.includes(tagId))
+        .map((tagId) => {
           return {
-            product_id: req.params.id,
-            tag_id,
+            productId: req.params.id,
+            tagId,
           };
         });
       // figure out which ones to remove
       const productTagsToRemove = productTags
-        .filter(({ tag_id }) => !req.body.tagIds.includes(tag_id))
+        .filter(({ tagId }) => !req.body.tagIds.includes(tagId))
         .map(({ id }) => id);
 
       // run both actions
@@ -121,7 +123,10 @@ router.delete('/:id', async (req, res) => {
     });
 
     if(!productData)
+    {
       res.status(404).json({ message: 'That product does not exist!'});
+      return;
+    }
 
     res.status(200).json(productData);
   } catch(err) {

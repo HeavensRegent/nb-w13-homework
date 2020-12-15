@@ -18,14 +18,12 @@ Category.hasMany(Product, {
 // Products belongToMany Tags (through ProductTag)
 Product.belongsToMany(Tag, {
   through: ProductTag,
-  as: 'groupedBy',
   foreignKey: 'productId'
 })
 
 // Tags belongToMany Products (through ProductTag)
 Tag.belongsToMany(Product, {
   through: ProductTag,
-  as: 'groupedProducts',
   foreignKey: 'tagId'
 })
 
